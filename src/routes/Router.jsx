@@ -7,7 +7,7 @@ import NotFound from '../pages/NotFound/NotFound';
 
 import DashboardLayout from '../layouts/DashboardLayout';
 import PrivateRoutes from "./PrivateRoutes";
-import { AdminRoute, StaffRoute } from "./RoleBasedRoutes";
+
 
 // Citizen Dashboard Pages
 import CitizenHome from "../pages/Dashboard/Citizen/CitizenHome";
@@ -93,33 +93,33 @@ export const router = createBrowserRouter([
 
             {
                 path: "staff-home",
-                element: <StaffRoute><StaffHome /></StaffRoute>,
+                element: <StaffHome />,
             },
             {
                 path: "assigned-issues",
-                element: <StaffRoute><AssignedIssues /></StaffRoute>,
+                element:  <AssignedIssues />,
             },
             
            
             {
                 path: "admin-home",
-                element: <AdminRoute><AdminHome /></AdminRoute>,
+                element: <AdminHome />,
             },
             {
                 path: "all-issues-admin",
-                element: <AdminRoute><AllIssuesAdmin /></AdminRoute>,
+                element: <AllIssuesAdmin />,
             },
             {
                 path: "manage-users",
-                element: <AdminRoute><ManageUsers /></AdminRoute>,
+                element: <ManageUsers />,
             },
             {
                 path: "manage-staff",
-                element: <AdminRoute><ManageStaff /></AdminRoute>,
+                element: <ManageStaff />,
             },
             {
                 path: "payments-admin",
-                element: <AdminRoute><PaymentsAdmin /></AdminRoute>,
+                element: <PaymentsAdmin />,
             },
 
           

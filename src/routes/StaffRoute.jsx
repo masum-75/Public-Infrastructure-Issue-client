@@ -1,6 +1,6 @@
 import React from 'react';
 
-const RoleBasedRoutes = () => {
+const StaffRoute = () => {
     return (
         <div>
             
@@ -8,4 +8,4 @@ const RoleBasedRoutes = () => {
     );
 };
 
-export default RoleBasedRoutes;
+export default StaffRoute;
