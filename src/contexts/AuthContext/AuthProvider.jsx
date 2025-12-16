@@ -9,8 +9,8 @@ import {
     signOut, 
     updateProfile 
 } from "firebase/auth";
-import { auth } from "../firebase/firebase.config"; 
-import useAxiosSecure from '../hooks/useAxiosSecure'; 
+import { auth } from "../../firebase/firebase.init"; 
+import useAxiosSecure from '../../hooks/useAxios'; 
 
 const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);

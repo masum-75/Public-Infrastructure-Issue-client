@@ -1,8 +1,8 @@
 import { createBrowserRouter } from "react-router";
 import MainLayout from '../layouts/MainLayout'; 
-import Home from '../pages/Home/Home/Home';
-import Login from '../pages/Auth/Login';
-import Registration from '../pages/Auth/Registration';
+import Home from "../pages/Home/Home";
+import Register from "../pages/Auth/Register";
+import Login from "../pages/Auth/Login";
 import NotFound from '../pages/NotFound/NotFound';
 
 import DashboardLayout from '../layouts/DashboardLayout';
@@ -33,6 +33,8 @@ import AllIssuesPublic from "../pages/AllIssues/AllIssuesPublic";
 import IssueDetails from "../pages/AllIssues/IssueDetails";
 
 
+
+
 export const router = createBrowserRouter([
     {
         path: "/",
@@ -59,7 +61,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "register",
-                element: <Registration />,
+                element: <Register></Register>
             },
             {
                 path: "dashboard/payment-success",
