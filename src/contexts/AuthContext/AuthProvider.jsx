@@ -12,14 +12,13 @@ import {
     GoogleAuthProvider
 } from "firebase/auth";
 import { auth } from "../../firebase/firebase.init"; 
-import useAxiosSecure from '../../hooks/useAxios'; 
+
 
 
 const googleProvider = new GoogleAuthProvider();
 const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const axiosSecure = useAxiosSecure();
 
   
     const createUser = (email, password) => {
@@ -50,32 +49,21 @@ const AuthProvider = ({ children }) => {
     };
 
    
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, currentUser => {
-            setUser(currentUser);
-
-            if (currentUser) {
-                
-                const userInfo = { email: currentUser.email };
-                axiosSecure.post('/api/auth/token', userInfo)
-                    .then(res => {
-                        if (res.data.token) {
-                            localStorage.setItem('access-token', res.data.token);
-                            setLoading(false);
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Token generation failed:", error);
-                        setLoading(false);
-                    });
-            } else {
-                
-                localStorage.removeItem('access-token');
-                setLoading(false);
-            }
-        });
-        return () => unsubscribe();
-    }, [axiosSecure]);
+   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        setUser(currentUser);
+        if (currentUser) {
+            // Backend-er `/api/auth/token` call korar dorkar nai
+            // Shudhu Firebase theke token-ti niye local storage-e rakhun
+            const token = await currentUser.getIdToken();
+            localStorage.setItem('access-token', token);
+        } else {
+            localStorage.removeItem('access-token');
+        }
+        setLoading(false);
+    });
+    return () => unsubscribe();
+}, []);
 
     const authInfo = {
         user,
