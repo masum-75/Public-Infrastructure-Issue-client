@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { FaCheckCircle, FaSpinner } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 
