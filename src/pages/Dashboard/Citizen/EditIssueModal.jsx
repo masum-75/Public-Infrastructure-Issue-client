@@ -48,7 +48,6 @@ const EditIssueModal = ({ issue, onClose, refetch }) => {
             }
         }
 
-        // 2. Prepare final updated data
         const updatedData = {
             title: data.title,
             description: data.description,

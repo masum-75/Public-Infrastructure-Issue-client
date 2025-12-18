@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router';
 import { FaArrowRight, FaMapMarkedAlt, FaLightbulb, FaTools } from 'react-icons/fa';
 
-// CSS Imports
+
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';

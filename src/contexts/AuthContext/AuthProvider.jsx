@@ -53,8 +53,7 @@ const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         setUser(currentUser);
         if (currentUser) {
-            // Backend-er `/api/auth/token` call korar dorkar nai
-            // Shudhu Firebase theke token-ti niye local storage-e rakhun
+            
             const token = await currentUser.getIdToken();
             localStorage.setItem('access-token', token);
         } else {

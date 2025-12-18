@@ -68,7 +68,6 @@ const AllIssuesAdmin = () => {
 
     return (
         <div className='p-6 bg-white min-h-screen'>
-            {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 border-b pb-6">
                 <div>
                     <h2 className="text-3xl font-black text-gray-800 flex items-center gap-3">
@@ -77,7 +76,6 @@ const AllIssuesAdmin = () => {
                     <p className="text-gray-500 font-bold mt-1">Total Issues Found: {issues.length}</p>
                 </div>
 
-                {/* Filters Section - Fixed Overlapping */}
                 <div className="flex flex-wrap gap-3">
                     <div className="flex items-center gap-2 bg-gray-100 px-4 rounded-xl border border-gray-200">
                         <FaFilter className="text-gray-400 text-sm" />
@@ -108,7 +106,6 @@ const AllIssuesAdmin = () => {
                 </div>
             </div>
 
-            {/* Table Section - High Contrast Design */}
             <div className="overflow-x-auto border border-gray-100 rounded-2xl shadow-sm">
                 <table className="table w-full">
                     <thead className="bg-gray-50 text-gray-800 font-black uppercase text-xs tracking-wider">

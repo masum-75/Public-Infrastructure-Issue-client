@@ -62,11 +62,9 @@ const Profile = () => {
     return (
         <div className="max-w-3xl mx-auto px-4 py-10">
             <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-                {/* Header Background */}
                 <div className="h-32 bg-gradient-to-r from-blue-600 to-indigo-700"></div>
                 
                 <div className="px-8 pb-10">
-                    {/* Profile Image & Role */}
                     <div className="relative -mt-16 flex flex-col items-center">
                         <div className="avatar">
                             <div className="w-32 h-32 rounded-full ring-8 ring-white shadow-xl bg-gray-100">
@@ -84,7 +82,6 @@ const Profile = () => {
                         </div>
                     </div>
 
-                    {/* Blocked Alert */}
                     {isBlocked && (
                         <div className='mt-8 p-4 bg-red-50 border-2 border-red-200 text-red-700 rounded-2xl flex items-center justify-center animate-pulse'>
                             <FaExclamationTriangle className="mr-3 text-xl" />
@@ -92,7 +89,6 @@ const Profile = () => {
                         </div>
                     )}
 
-                    {/* Update Form - Fixed Spacing */}
                     <form onSubmit={handleSubmit(handleProfileUpdate)} className="mt-10 space-y-8">
                         <div className="form-control w-full">
                             <label className="label">

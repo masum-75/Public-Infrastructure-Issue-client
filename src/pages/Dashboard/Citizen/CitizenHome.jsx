@@ -13,7 +13,6 @@ const CitizenHome = () => {
     const { data: stats = {}, isLoading } = useQuery({
         queryKey: ['citizen-stats', user?.email],
         queryFn: async () => {
-            // নিশ্চিত করুন আপনার ব্যাকএন্ডে এই রাউটটি ঠিক আছে
             const res = await axiosSecure.get(`/dashboard/citizen-stats/${user?.email}`);
             return res.data;
         }
