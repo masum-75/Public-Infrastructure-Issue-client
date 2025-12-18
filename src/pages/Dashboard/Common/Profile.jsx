@@ -5,16 +5,15 @@ import { useForm } from 'react-hook-form';
 import Swal from 'sweetalert2';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import { useQueryClient } from '@tanstack/react-query';
-import { FaUserCircle, FaCrown, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { FaCrown, FaCheckCircle, FaExclamationTriangle, FaUser } from 'react-icons/fa';
 
 const Profile = () => {
     const { user, updateUserProfile } = useAuth();
-    const { role, isPremium, isBlocked, roleLoading } = useRole();
-    const { register, handleSubmit, setValue } = useForm();
+    const { role, isPremium, isBlocked, isRoleLoading } = useRole();
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm();
     const axiosSecure = useAxiosSecure();
     const queryClient = useQueryClient();
 
-   
     React.useEffect(() => {
         if (user) {
             setValue('displayName', user.displayName || '');
@@ -26,7 +25,7 @@ const Profile = () => {
         updateUserProfile({ displayName: data.displayName })
             .then(() => {
                 Swal.fire('Success', 'Profile updated successfully!', 'success');
-                queryClient.invalidateQueries({ queryKey: ['user-status', user.email] });
+                queryClient.invalidateQueries({ queryKey: [user?.email, 'userRole'] });
             })
             .catch(error => {
                 Swal.fire('Error', error.message, 'error');
@@ -35,89 +34,127 @@ const Profile = () => {
 
     const handleSubscription = async () => {
         const subscriptionCost = 1000; 
-        
         Swal.fire({
             title: "Confirm Subscription?",
-            text: `You will be charged ${subscriptionCost} Taka for a Premium Subscription.`,
+            text: `Charge: ${subscriptionCost} Taka for Premium access.`,
             icon: "info",
             showCancelButton: true,
-            confirmButtonText: "Proceed to Payment"
+            confirmButtonText: "Pay Now",
+            confirmButtonColor: '#4F46E5'
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
                     const res = await axiosSecure.post('/subscription-checkout-session', { cost: subscriptionCost });
-                    
                     window.location.href = res.data.url;
                 } catch (error) {
-                    Swal.fire('Error', 'Failed to initiate payment. Please try again.', 'error');
+                    Swal.fire('Error', 'Payment failed!', 'error');
                 }
             }
         });
     };
 
-    if (roleLoading) {
-        return <span className="loading loading-infinity loading-xl block mx-auto mt-20"></span>;
-    }
+    if (isRoleLoading) return (
+        <div className="flex justify-center items-center min-h-[400px]">
+            <span className="loading loading-infinity loading-lg text-primary"></span>
+        </div>
+    );
 
     return (
-        <div className="p-4 bg-white rounded-lg shadow-xl max-w-2xl mx-auto">
-            <div className="text-center mb-6 border-b pb-4">
-                <div className="avatar mb-4">
-                    <div className="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                        <img src={user?.photoURL || 'https://via.placeholder.com/150'} alt="Profile" />
+        <div className="max-w-3xl mx-auto px-4 py-10">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+                {/* Header Background */}
+                <div className="h-32 bg-gradient-to-r from-blue-600 to-indigo-700"></div>
+                
+                <div className="px-8 pb-10">
+                    {/* Profile Image & Role */}
+                    <div className="relative -mt-16 flex flex-col items-center">
+                        <div className="avatar">
+                            <div className="w-32 h-32 rounded-full ring-8 ring-white shadow-xl bg-gray-100">
+                                <img src={user?.photoURL || 'https://i.ibb.co/0Qp9Y9G/user.png'} alt="Profile" />
+                            </div>
+                        </div>
+                        <div className="mt-4 text-center">
+                            <h2 className="text-3xl font-black text-gray-900 flex items-center justify-center gap-2">
+                                {user?.displayName || 'User Name'}
+                                {isPremium && <FaCrown className="text-yellow-500 animate-bounce" title="Premium" />}
+                            </h2>
+                            <div className="mt-2 inline-flex items-center px-4 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 font-black text-xs uppercase tracking-widest">
+                                {role || 'Citizen'}
+                            </div>
+                        </div>
                     </div>
+
+                    {/* Blocked Alert */}
+                    {isBlocked && (
+                        <div className='mt-8 p-4 bg-red-50 border-2 border-red-200 text-red-700 rounded-2xl flex items-center justify-center animate-pulse'>
+                            <FaExclamationTriangle className="mr-3 text-xl" />
+                            <span className="font-black">ACCOUNT BLOCKED! CONTACT AUTHORITIES</span>
+                        </div>
+                    )}
+
+                    {/* Update Form - Fixed Spacing */}
+                    <form onSubmit={handleSubmit(handleProfileUpdate)} className="mt-10 space-y-8">
+                        <div className="form-control w-full">
+                            <label className="label">
+                                <span className="label-text font-black text-gray-700 uppercase tracking-wide text-xs">Full Name</span>
+                            </label>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
+                                    <FaUser />
+                                </span>
+                                <input 
+                                    type="text" 
+                                    {...register('displayName', { required: true })} 
+                                    className="input input-bordered w-full h-14 pl-12 bg-gray-50 text-gray-900 font-bold focus:ring-4 focus:ring-blue-100 border-gray-200" 
+                                />
+                            </div>
+                            {errors.displayName && <span className="text-red-500 text-xs mt-2 font-bold italic">Full name is required</span>}
+                        </div>
+
+                        <div className="form-control w-full opacity-70">
+                            <label className="label">
+                                <span className="label-text font-black text-gray-700 uppercase tracking-wide text-xs">Email (Read-Only)</span>
+                            </label>
+                            <input 
+                                type="email" 
+                                {...register('email')} 
+                                className="input input-bordered w-full h-14 bg-gray-200 text-gray-600 font-bold cursor-not-allowed" 
+                                readOnly 
+                            />
+                        </div>
+
+                        <button type="submit" className="btn btn-primary w-full h-14 text-white font-black text-lg border-none bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100" disabled={isBlocked}>
+                            SAVE PROFILE CHANGES
+                        </button>
+                    </form>
+                    
+                    <div className="divider my-12 text-gray-400 font-black text-xs uppercase tracking-widest">Membership Status</div>
+
+                    {/* Premium Card - Fixed Contrast */}
+                    {isPremium ? (
+                        <div className="p-6 bg-green-50 rounded-2xl border-2 border-green-200 flex items-center gap-4">
+                            <div className="p-3 bg-green-500 rounded-full text-white">
+                                <FaCheckCircle size={24} />
+                            </div>
+                            <div>
+                                <h4 className="font-black text-green-900 text-lg">Active Premium Access</h4>
+                                <p className="text-green-700 font-bold text-sm">You have unlimited reporting and priority support.</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="p-8 bg-amber-50 rounded-2xl border-2 border-amber-100 text-center">
+                            <p className="mb-6 text-amber-900 font-black text-lg tracking-tight">Upgrade to Premium for unlimited reporting and exclusive features.</p>
+                            <button 
+                                onClick={handleSubscription} 
+                                className="btn btn-warning w-full h-14 text-black font-black text-lg border-none shadow-lg shadow-amber-200 hover:scale-[1.02] transition-transform" 
+                                disabled={isBlocked}
+                            >
+                                GET PREMIUM NOW (1000 TK)
+                            </button>
+                        </div>
+                    )}
                 </div>
-                <h2 className="text-3xl font-bold flex items-center justify-center">
-                    {user?.displayName}
-                    {isPremium && <FaCrown className="text-yellow-500 ml-3" data-tip="Premium User" />}
-                </h2>
-                <p className="text-gray-500">Role: <span className="font-semibold capitalize">{role}</span></p>
-                
-                {isBlocked && (
-                     <div className='mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center justify-center'>
-                         <FaExclamationTriangle className="mr-2" />
-                         <span className="font-bold">ACCOUNT BLOCKED!</span> Contact authorities for assistance.
-                     </div>
-                )}
             </div>
-
-            <form onSubmit={handleSubmit(handleProfileUpdate)} className="space-y-4">
-                
-                <label className="form-control w-full">
-                    <div className="label"><span className="label-text font-semibold">Full Name</span></div>
-                    <input type="text" {...register('displayName', { required: true })} className="input input-bordered w-full" />
-                    {errors.displayName && <span className="text-red-500 text-sm mt-1">Name is required</span>}
-                </label>
-
-                <label className="form-control w-full">
-                    <div className="label"><span className="label-text font-semibold">Email (Read-Only)</span></div>
-                    <input type="email" {...register('email')} className="input input-bordered w-full bg-gray-100" readOnly />
-                </label>
-
-                <button type="submit" className="btn btn-primary w-full text-black">
-                    Update Profile
-                </button>
-            </form>
-            
-            <div className="divider">Subscription Status</div>
-
-            {isPremium ? (
-                <div className="flex items-center justify-center p-4 bg-green-50 rounded-lg border border-green-300">
-                    <FaCheckCircle className="text-green-500 text-xl mr-3" />
-                    <span className="font-semibold text-green-700">You are a Premium Citizen! Enjoy unlimited reporting.</span>
-                </div>
-            ) : (
-                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-300 text-center">
-                    <p className="mb-3 text-yellow-700">Upgrade to Premium to report **unlimited issues** and get priority support.</p>
-                    <button 
-                        onClick={handleSubscription} 
-                        className="btn btn-warning w-full text-black"
-                        disabled={isBlocked}
-                    >
-                        Subscribe Now (1000 Taka)
-                    </button>
-                </div>
-            )}
         </div>
     );
 };

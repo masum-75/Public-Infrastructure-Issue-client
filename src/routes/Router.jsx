@@ -1,13 +1,13 @@
 import { createBrowserRouter } from "react-router";
 import MainLayout from '../layouts/MainLayout'; 
 import Home from "../pages/Home/Home";
-import Register from "../pages/Auth/Register";
-import Login from "../pages/Auth/Login";
-import NotFound from '../pages/NotFound/NotFound';
 
+import NotFound from '../pages/NotFound/NotFound';
+import Login from "../pages/Auth/Login";
+import Register from "../pages/Auth/Register";
 import DashboardLayout from '../layouts/DashboardLayout';
 import PrivateRoutes from "./PrivateRoutes";
-
+import { AdminRoute, StaffRoute } from "./RoleBasedRoutes";
 
 // Citizen Dashboard Pages
 import CitizenHome from "../pages/Dashboard/Citizen/CitizenHome";
@@ -31,6 +31,8 @@ import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 import PaymentCancelled from "../pages/Payment/PaymentCancelled";
 import AllIssuesPublic from "../pages/AllIssues/AllIssuesPublic";
 import IssueDetails from "../pages/AllIssues/IssueDetails";
+import ContactUs from "../pages/Home/ContactUs";
+import AboutUs from "../pages/Home/AboutUs";
 
 
 
@@ -51,17 +53,18 @@ export const router = createBrowserRouter([
             },
             {
                 path: "issue/:id",
-               
+                
                 element: <PrivateRoutes><IssueDetails /></PrivateRoutes>, 
             },
-            
+            { path: "about-us", element: <AboutUs /> },
+            { path: "Contact-us", element: <ContactUs /> },
             {
                 path: "login",
                 element: <Login />,
             },
             {
                 path: "register",
-                element: <Register></Register>
+                element: <Register />,
             },
             {
                 path: "dashboard/payment-success",
@@ -77,6 +80,7 @@ export const router = createBrowserRouter([
         path: "/dashboard",
         element: <PrivateRoutes><DashboardLayout /></PrivateRoutes>,
         children: [
+
             {
                 path: "citizen-home",
                 element: <CitizenHome />, 
@@ -90,39 +94,39 @@ export const router = createBrowserRouter([
                 element: <ReportIssue />,
             },
             
-
+       
             {
                 path: "staff-home",
-                element: <StaffHome />,
+                element: <StaffRoute><StaffHome /></StaffRoute>,
             },
             {
                 path: "assigned-issues",
-                element:  <AssignedIssues />,
+                element: <StaffRoute><AssignedIssues /></StaffRoute>,
             },
             
-           
+          
             {
                 path: "admin-home",
-                element: <AdminHome />,
+                element: <AdminRoute><AdminHome /></AdminRoute>,
             },
             {
                 path: "all-issues-admin",
-                element: <AllIssuesAdmin />,
+                element: <AdminRoute><AllIssuesAdmin /></AdminRoute>,
             },
             {
                 path: "manage-users",
-                element: <ManageUsers />,
+                element: <AdminRoute><ManageUsers /></AdminRoute>,
             },
             {
                 path: "manage-staff",
-                element: <ManageStaff />,
+                element: <AdminRoute><ManageStaff /></AdminRoute>,
             },
             {
                 path: "payments-admin",
-                element: <PaymentsAdmin />,
+                element: <AdminRoute><PaymentsAdmin /></AdminRoute>,
             },
 
-          
+           
             {
                 path: "profile",
                 element: <Profile />,

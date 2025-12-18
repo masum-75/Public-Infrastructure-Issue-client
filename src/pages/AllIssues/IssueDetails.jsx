@@ -1,11 +1,14 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import useAxiosSecure from '../../hooks/useAxiosSecure';
 import useAuth from '../../hooks/useAuth';
 import useRole from '../../hooks/useRole';
 import Swal from 'sweetalert2';
-import { FaMapMarkerAlt, FaCalendarAlt, FaStar, FaRegStar, FaRegEdit, FaTrash, FaLevelUpAlt, FaSpinner } from 'react-icons/fa';
+import { 
+    FaMapMarkerAlt, FaCalendarAlt, FaStar, FaRegStar, 
+    FaRegEdit, FaTrash, FaLevelUpAlt, FaSpinner, 
+    FaHeart, FaRegHeart, FaHistory, FaUserShield 
+} from 'react-icons/fa';
+import { useNavigate, useParams } from 'react-router';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const IssueDetails = () => {
     const { id } = useParams();
@@ -15,6 +18,7 @@ const IssueDetails = () => {
     const { role, isBlocked } = useRole();
     const queryClient = useQueryClient();
 
+    // Data Fetching
     const { data: issue = {}, isLoading: issueLoading, refetch: refetchIssue } = useQuery({
         queryKey: ['issues', id],
         queryFn: async () => {
@@ -23,8 +27,7 @@ const IssueDetails = () => {
         },
         enabled: !!id,
     });
-    
-    
+
     const { data: timeline = [], isLoading: timelineLoading } = useQuery({
         queryKey: ['timeline', id],
         queryFn: async () => {
@@ -35,195 +38,218 @@ const IssueDetails = () => {
     });
 
     const isOwner = user?.email === issue.citizenEmail;
-    
-    
+
+   
     const boostMutation = useMutation({
-        mutationFn: (boostData) => {
-            return axiosSecure.post('/boost-checkout-session', boostData);
-        },
+        mutationFn: (boostData) => axiosSecure.post('/boost-checkout-session', boostData),
+        onSuccess: (res) => { window.location.href = res.data.url; },
+        onError: () => { Swal.fire('Error', 'Failed to initiate boost payment.', 'error'); }
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (issueId) => axiosSecure.delete(`/dashboard/my-issues/${issueId}`),
         onSuccess: (res) => {
-           
-            window.location.href = res.data.url;
-        },
-        onError: () => {
-             Swal.fire('Error', 'Failed to initiate boost payment.', 'error');
+            if (res.data.deletedCount > 0) {
+                Swal.fire('Deleted!', 'Issue removed successfully.', 'success');
+                navigate('/dashboard/my-issues');
+            }
         }
     });
 
+   
     const handleBoostIssue = () => {
-        if (issue.priority === 'High') {
-            Swal.fire('Info', 'This issue is already boosted.', 'info');
-            return;
-        }
-        if (isBlocked) {
-             Swal.fire('Blocked!', 'You are currently blocked and cannot boost an issue.', 'error');
-             return;
-        }
+        if (issue.priority === 'High') return Swal.fire('Info', 'Already boosted.', 'info');
+        if (isBlocked) return Swal.fire('Blocked!', 'Your account is restricted.', 'error');
 
-        const boostCost = 100; 
-        
         Swal.fire({
-            title: "Boost Issue Priority?",
-            text: `You will pay ${boostCost} Taka to set this issue's priority to High.`,
+            title: "Upgrade Priority?",
+            text: "Boost this issue to 'High' for 100 Taka?",
             icon: "question",
             showCancelButton: true,
-            confirmButtonText: "Confirm Boost Payment"
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: "Proceed to Payment"
         }).then((result) => {
             if (result.isConfirmed) {
-                const boostData = {
-                    issueId: id,
-                    title: issue.title,
-                    cost: boostCost 
-                };
-                boostMutation.mutate(boostData);
+                boostMutation.mutate({ issueId: id, title: issue.title, cost: 100 });
             }
         });
     };
-    
- 
-    const deleteMutation = useMutation({
-        mutationFn: (issueId) => {
-          
-            return axiosSecure.delete(`/dashboard/my-issues/${issueId}`);
-        },
-        onSuccess: (res) => {
-            if (res.data.deletedCount > 0) {
-                Swal.fire('Deleted!', 'Your issue has been deleted.', 'success');
-                navigate('/dashboard/my-issues'); 
-            } else {
-                Swal.fire('Error', 'Could not delete issue. Status must be Pending.', 'error');
-            }
-        },
-        onError: () => {
-             Swal.fire('Error', 'Failed to delete. Check issue status.', 'error');
-        }
-    });
 
     const handleDelete = () => {
         Swal.fire({
-            title: 'Confirm Deletion?',
-            text: "You can only delete issues with 'Pending' status.",
+            title: 'Permanent Delete?',
+            text: "Only 'Pending' issues can be removed.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Yes, Delete It'
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Confirm Delete'
         }).then((result) => {
-            if (result.isConfirmed) {
-                deleteMutation.mutate(id);
-            }
+            if (result.isConfirmed) deleteMutation.mutate(id);
         });
     };
 
-    if (issueLoading || !issue.title) {
-        return <div className='flex justify-center items-center h-96'><FaSpinner className="animate-spin text-4xl text-primary" /></div>;
+    if (issueLoading) {
+        return (
+            <div className='flex flex-col justify-center items-center h-[60vh] gap-4'>
+                <FaSpinner className="animate-spin text-5xl text-primary" />
+                <p className="font-bold text-slate-400 uppercase tracking-widest text-xs">Loading Details</p>
+            </div>
+        );
     }
-    
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Resolved': return 'bg-success';
-            case 'In-Progress':
-            case 'Working': return 'bg-warning';
-            case 'Rejected': return 'bg-error';
-            case 'Pending':
-            default: return 'bg-info';
-        }
+
+    const getStatusStyle = (status) => {
+        const styles = {
+            'Resolved': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+            'In-Progress': 'bg-amber-100 text-amber-700 border-amber-200',
+            'Rejected': 'bg-rose-100 text-rose-700 border-rose-200',
+            'Pending': 'bg-sky-100 text-sky-700 border-sky-200'
+        };
+        return styles[status] || styles['Pending'];
     };
-    
+
     return (
-        <div className="max-w-6xl mx-auto p-4 lg:p-8">
-            <h1 className="text-4xl font-extrabold mb-3 text-secondary">{issue.title}</h1>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-                
-                <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg space-y-4">
-                    <img src={issue.imageUrl} alt={issue.title} className="w-full h-80 object-cover rounded-lg mb-4" />
-                    
-                    <div className="flex justify-between items-center border-b pb-3">
-                        <div className={`badge text-white text-lg p-3 ${getStatusColor(issue.status)}`}>{issue.status}</div>
-                        <div className={`text-xl font-bold flex items-center ${issue.priority === 'High' ? 'text-red-500' : 'text-gray-500'}`}>
-                            {issue.priority === 'High' ? <FaStar className="mr-1" /> : <FaRegStar className="mr-1" />}
-                            Priority: {issue.priority}
-                        </div>
-                    </div>
-                    
-                    <p className="text-gray-700 text-lg">{issue.description}</p>
-                    
-                    <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                        <p className="text-sm flex items-center"><FaMapMarkerAlt className="text-primary mr-2" /> **Location:** {issue.location}</p>
-                        <p className="text-sm flex items-center"><FaCalendarAlt className="text-primary mr-2" /> **Reported:** {new Date(issue.createdAt).toLocaleDateString()}</p>
-                        <p className="text-sm">**Category:** <span className="font-semibold">{issue.category}</span></p>
-                        <p className="text-sm">**Upvotes:** <span className="font-semibold text-red-500">{issue.upvotes}</span></p>
-                    </div>
-
-                   
-                    {issue.assignedStaffEmail && (
-                        <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
-                            <h4 className="font-bold text-blue-700">Assigned Staff</h4>
-                            <p className="text-sm">**Name:** {issue.assignedStaffName || 'N/A'}</p>
-                            <p className="text-sm">**Email:** {issue.assignedStaffEmail}</p>
-                        </div>
-                    )}
-                </div>
-
-             
-                <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit space-y-4 border-t-4 border-primary">
-                    <h3 className="text-2xl font-bold border-b pb-3">Citizen Actions</h3>
-                    
-                    <div className="p-3 bg-gray-100 rounded-lg text-center">
-                        <p className="font-semibold">Your Upvote Status:</p>
-                        <p className={`text-lg font-bold ${issue.hasUpvoted ? 'text-red-500' : 'text-gray-400'}`}>
-                            {issue.hasUpvoted ? <><FaHeart className="inline mr-1" /> Upvoted</> : <><FaRegHeart className="inline mr-1" /> Not Yet Upvoted</>}
-                        </p>
-                    </div>
-
-                   
-                    {isOwner && issue.status === 'Pending' && (
-                        <>
-                            <button onClick={() => navigate(`/dashboard/my-issues?edit=${id}`)} className="btn btn-warning w-full text-black flex items-center"><FaRegEdit className="mr-2" /> Edit Issue (Pending)</button>
-                            <button onClick={handleDelete} className="btn btn-error w-full text-white flex items-center" disabled={deleteMutation.isPending}><FaTrash className="mr-2" /> Delete Issue</button>
-                        </>
-                    )}
-                    
-                  
-                    {isOwner && issue.priority !== 'High' && (
-                        <button onClick={handleBoostIssue} className="btn btn-info w-full text-white flex items-center" disabled={boostMutation.isPending || isBlocked}>
-                            {boostMutation.isPending ? <FaSpinner className="animate-spin mr-2" /> : <FaLevelUpAlt className="mr-2" />}
-                            Boost Priority (100 Taka)
-                        </button>
-                    )}
-                </div>
+        <div className="max-w-7xl mx-auto p-4 md:p-8 bg-slate-50 min-h-screen">
+         
+            <div className="mb-8">
+                <nav className="text-sm font-medium text-slate-400 mb-2">Issues / {issue.category}</nav>
+                <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">{issue.title}</h1>
             </div>
 
-            {/* Tracking Timeline Section */}
-            <div className="bg-white p-6 rounded-xl shadow-lg">
-                <h2 className="text-3xl font-bold mb-6 text-primary border-b pb-3">Issue Tracking & Timeline</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                {timelineLoading ? (
-                    <div className='flex justify-center items-center h-40'><FaSpinner className="animate-spin text-4xl text-primary" /></div>
-                ) : (
-                    <ul className="timeline timeline-snap-icon timeline-vertical">
-                        {timeline.map((log, index) => (
-                            <li key={log._id}>
-                                <div className="timeline-middle">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5 text-primary"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
+               
+                <div className="lg:col-span-8 space-y-8">
+                    <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
+                        <img src={issue.imageUrl} alt={issue.title} className="w-full h-[450px] object-cover" />
+                        
+                        <div className="p-8">
+                            <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+                                <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${getStatusStyle(issue.status)}`}>
+                                    {issue.status}
+                                </span>
+                                <div className={`flex items-center gap-2 font-black ${issue.priority === 'High' ? 'text-rose-500' : 'text-slate-400'}`}>
+                                    {issue.priority === 'High' ? <FaStar /> : <FaRegStar />}
+                                    <span className="uppercase tracking-wider text-sm">Priority: {issue.priority}</span>
                                 </div>
-                                <div className={`timeline-${index % 2 === 0 ? 'start' : 'end'} md:text-end mb-10`}>
-                                    <time className="font-mono italic text-sm text-gray-500">{new Date(log.createdAt).toLocaleString()}</time>
-                                    <div className={`text-lg font-black mt-1 ${getStatusColor(log.status)} p-1 rounded-sm text-white inline-block`}>
-                                        {log.status}
+                            </div>
+
+                            <p className="text-slate-600 text-lg leading-relaxed mb-8">{issue.description}</p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-white rounded-xl shadow-sm"><FaMapMarkerAlt className="text-primary" /></div>
+                                    <div>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Location</p>
+                                        <p className="font-bold text-slate-700">{issue.location}</p>
                                     </div>
-                                    <div className="text-md font-semibold mt-1">
-                                        {log.message}
-                                    </div>
-                                    <p className="text-sm text-gray-600 mt-1">
-                                        Updated by: <span className='font-bold'>{log.updatedBy}</span> {log.staffName && `(${log.staffName})`}
-                                    </p>
                                 </div>
-                                {index < timeline.length - 1 && <hr />}
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-white rounded-xl shadow-sm"><FaCalendarAlt className="text-primary" /></div>
+                                    <div>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Reported On</p>
+                                        <p className="font-bold text-slate-700">{new Date(issue.createdAt).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {issue.assignedStaffEmail && (
+                                <div className="mt-8 p-6 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start gap-4">
+                                    <div className="bg-blue-500 p-3 rounded-xl text-white"><FaUserShield /></div>
+                                    <div>
+                                        <h4 className="font-black text-blue-900 uppercase text-xs tracking-widest mb-1">Assigned Official</h4>
+                                        <p className="font-bold text-blue-800">{issue.assignedStaffName || 'Support Team'}</p>
+                                        <p className="text-sm text-blue-600">{issue.assignedStaffEmail}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                  
+                    <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200">
+                        <div className="flex items-center gap-3 mb-8">
+                            <FaHistory className="text-primary text-2xl" />
+                            <h2 className="text-2xl font-black text-slate-800">Tracking Progress</h2>
+                        </div>
+                        
+                        {timelineLoading ? (
+                            <div className="py-10 text-center"><span className="loading loading-dots loading-md text-primary"></span></div>
+                        ) : (
+                            <ul className="timeline timeline-vertical timeline-compact">
+                                {timeline.map((log, idx) => (
+                                    <li key={log._id}>
+                                        <hr className={idx === 0 ? 'bg-transparent' : 'bg-slate-200'} />
+                                        <div className="timeline-middle">
+                                            <div className="w-4 h-4 rounded-full border-4 border-white bg-primary shadow-sm"></div>
+                                        </div>
+                                        <div className="timeline-end mb-10 ml-4">
+                                            <time className="text-[10px] font-bold text-slate-400 uppercase">{new Date(log.createdAt).toLocaleString()}</time>
+                                            <div className="text-sm font-black text-slate-800 uppercase mt-0.5">{log.status}</div>
+                                            <p className="text-slate-500 text-sm mt-1">{log.message}</p>
+                                            <p className="text-[10px] font-medium text-slate-400 mt-2">Update by: {log.staffName || log.updatedBy}</p>
+                                        </div>
+                                        {idx !== timeline.length - 1 && <hr className="bg-slate-200" />}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+
+                
+                <div className="lg:col-span-4 sticky top-8 space-y-6">
+                    <div className="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100">
+                        <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                            Citizen <span className="text-primary">Portal</span>
+                        </h3>
+                        
+                        <div className="mb-8 p-6 bg-slate-50 rounded-2xl text-center border border-slate-100">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Upvote Status</p>
+                            <div className={`flex items-center justify-center gap-2 text-xl font-black ${issue.hasUpvoted ? 'text-rose-500' : 'text-slate-300'}`}>
+                                {issue.hasUpvoted ? <FaHeart /> : <FaRegHeart />}
+                                <span>{issue.hasUpvoted ? 'Endorsed' : 'Not Upvoted'}</span>
+                            </div>
+                            <p className="text-xs font-bold text-slate-400 mt-2">{issue.upvotes} total citizens supported</p>
+                        </div>
+
+                        <div className="space-y-3">
+                            {isOwner && issue.status === 'Pending' && (
+                                <>
+                                    <button 
+                                        onClick={() => navigate(`/dashboard/my-issues?edit=${id}`)} 
+                                        className="btn btn-warning w-full rounded-xl font-black shadow-md shadow-amber-100 border-none h-14"
+                                    >
+                                        <FaRegEdit /> Edit Report
+                                    </button>
+                                    <button 
+                                        onClick={handleDelete} 
+                                        className="btn btn-ghost w-full rounded-xl font-black text-rose-500 hover:bg-rose-50 h-14 border border-rose-100"
+                                        disabled={deleteMutation.isPending}
+                                    >
+                                        <FaTrash /> Remove Issue
+                                    </button>
+                                </>
+                            )}
+                            
+                            {isOwner && issue.priority !== 'High' && (
+                                <button 
+                                    onClick={handleBoostIssue} 
+                                    className="btn btn-primary w-full rounded-xl font-black h-14 shadow-lg shadow-sky-100 border-none"
+                                    disabled={boostMutation.isPending || isBlocked}
+                                >
+                                    {boostMutation.isPending ? <FaSpinner className="animate-spin" /> : <FaLevelUpAlt />}
+                                    Boost to High Priority
+                                </button>
+                            )}
+                            
+                            {!isOwner && (
+                                <div className="text-center p-4">
+                                    <p className="text-xs font-bold text-slate-400 italic">Limited actions for viewing public records.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
