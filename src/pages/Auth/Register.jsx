@@ -2,6 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router"; 
 import useAuth from "../../hooks/useAuth";
+import useAxios from "../../hooks/useAxios"; 
 import axios from "axios";
 import Swal from "sweetalert2";
 import { FaGoogle } from "react-icons/fa";
@@ -15,6 +16,7 @@ const Register = () => {
     
     const { createUser, updateUserProfile, googleSignIn } = useAuth();
     const navigate = useNavigate();
+    const axiosPublic = useAxios(); 
 
     const onSubmit = async (data) => {
         try {
@@ -37,51 +39,62 @@ const Register = () => {
          
             await createUser(data.email, data.password);
             
-         
+          
             await updateUserProfile(data.name, photoURL);
 
-            
+
             const userInfo = {
                 name: data.name,
-                email: data.email,
+                email: data.email.toLowerCase(), 
                 photoURL,
                 role: "citizen",
                 createdAt: new Date(),
             };
 
-            const dbRes = await axios.post(
-                `${import.meta.env.VITE_API_URL}/users`,
-                userInfo
-            );
+            const dbRes = await axiosPublic.post("/users", userInfo);
 
-            if (dbRes.data.insertedId || dbRes.data.message === "user already exists") {
+            if (dbRes.data.insertedId || dbRes.data.message === "User already registered") {
                 Swal.fire({
                     icon: "success",
                     title: "Success!",
-                    text: "Account created successfully!",
+                    text: "Account created and saved successfully!",
                     timer: 2000,
                     showConfirmButton: false
                 });
                 navigate("/");
             }
         } catch (error) {
-            console.error(error);
+            console.error("Registration Error:", error);
+            
+            const errorMsg = error.response?.data?.message || error.message;
+            
             Swal.fire({
                 icon: "error",
                 title: "Oops...",
-                text: error.message,
+                text: errorMsg,
             });
         }
     };
 
-    const handleGoogleLogin = () => {
-        googleSignIn()
-            .then(() => {
-                navigate("/");
-            })
-            .catch((err) => {
-                Swal.fire("Error", err.message, "error");
-            });
+    const handleGoogleLogin = async () => {
+        try {
+            const result = await googleSignIn();
+            const user = result.user;
+
+            const userInfo = {
+                name: user?.displayName,
+                email: user?.email?.toLowerCase(),
+                photoURL: user?.photoURL,
+                role: "citizen",
+                createdAt: new Date(),
+            };
+            
+            await axiosPublic.post("/users", userInfo);
+            
+            navigate("/");
+        } catch (err) {
+            Swal.fire("Error", err.message, "error");
+        }
     };
 
     return (
@@ -101,7 +114,7 @@ const Register = () => {
                         {errors.name && <span className="text-error text-sm">{errors.name.message}</span>}
                     </div>
 
-                    
+                    {/* Email */}
                     <div>
                         <input
                             type="email"
@@ -112,7 +125,7 @@ const Register = () => {
                         {errors.email && <span className="text-error text-sm">{errors.email.message}</span>}
                     </div>
 
-                 
+                    {/* Password */}
                     <div>
                         <input
                             type="password"
@@ -126,7 +139,7 @@ const Register = () => {
                         {errors.password && <span className="text-error text-sm">{errors.password.message}</span>}
                     </div>
 
-                    
+                    {/* File Input */}
                     <div>
                         <label className="label">
                             <span className="label-text">Profile Picture (Optional)</span>
