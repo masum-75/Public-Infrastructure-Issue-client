@@ -11,7 +11,7 @@ const ManageUsers = () => {
     const { data: users = [], isLoading } = useQuery({
         queryKey: ['allUsersAdmin'],
         queryFn: async () => {
-            const res = await axiosSecure.get('/users/all');
+            const res = await axiosSecure.get('/users');
             return res.data;
         }
     });

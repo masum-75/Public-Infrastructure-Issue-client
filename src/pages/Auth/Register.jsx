@@ -2,10 +2,11 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router"; 
 import useAuth from "../../hooks/useAuth";
-import useAxios from "../../hooks/useAxios"; 
+ 
 import axios from "axios";
 import Swal from "sweetalert2";
 import { FaGoogle } from "react-icons/fa";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
 
 const Register = () => {
     const {
@@ -16,7 +17,7 @@ const Register = () => {
     
     const { createUser, updateUserProfile, googleSignIn } = useAuth();
     const navigate = useNavigate();
-    const axiosPublic = useAxios(); 
+    const axiosSecure = useAxiosSecure()
 
     const onSubmit = async (data) => {
         try {
@@ -51,7 +52,7 @@ const Register = () => {
                 createdAt: new Date(),
             };
 
-            const dbRes = await axiosPublic.post("/users", userInfo);
+            const dbRes = await axiosSecure.post("/users", userInfo);
 
             if (dbRes.data.insertedId || dbRes.data.message === "User already registered") {
                 Swal.fire({
@@ -89,7 +90,7 @@ const Register = () => {
                 createdAt: new Date(),
             };
             
-            await axiosPublic.post("/users", userInfo);
+            await axiosSecure.post("/users", userInfo);
             
             navigate("/");
         } catch (err) {
