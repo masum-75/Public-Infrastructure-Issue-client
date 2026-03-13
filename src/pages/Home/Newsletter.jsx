@@ -1,69 +1,123 @@
-import React, { useState } from 'react';
-import { FaPaperPlane, FaEnvelopeOpenText } from 'react-icons/fa';
-import Swal from 'sweetalert2'; 
+import React, { useState } from "react";
+import {
+  FaPaperPlane,
+  FaEnvelopeOpenText,
+  FaCheckCircle,
+  FaLock,
+} from "react-icons/fa";
 
 const Newsletter = () => {
-    const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
 
-    const handleSubscribe = (e) => {
-        e.preventDefault();
-        if (email) {
-           
-            Swal.fire({
-                icon: 'success',
-                title: 'Subscribed!',
-                text: 'Thank you for staying with CivicFix.',
-                confirmButtonColor: '#2563eb'
-            });
-            setEmail("");
-        }
-    };
+  const validateEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
-    return (
-        <section className="relative py-8 px-4 overflow-hidden">
-           
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-700 to-indigo-900 -z-10 rounded-[40px]"></div>
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-            
-            <div className="max-w-4xl mx-auto flex flex-col items-center text-center text-white">
-                <div className="bg-white/20 p-4 rounded-2xl mb-6 backdrop-blur-md">
-                    <FaEnvelopeOpenText className="text-4xl" />
-                </div>
-                
-                <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">
-                    Stay in the <span className="text-blue-300">Loop</span>
-                </h2>
-                
-                <p className="text-lg md:text-xl opacity-80 mb-10 max-w-xl font-medium leading-relaxed">
-                    Join 5,000+ citizens getting real-time updates on community resolutions and news.
-                </p>
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      setError("Please enter your email address.");
+      return;
+    }
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1400));
+    setLoading(false);
+    setSubscribed(true);
+  };
 
-                <form 
-                    onSubmit={handleSubscribe}
-                    className="flex flex-col sm:flex-row w-full max-w-lg gap-3 p-2 bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20"
-                >
-                    <input 
-                        type="email" 
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email address" 
-                        className="flex-1 bg-transparent border-none outline-none px-6 py-4 text-white placeholder:text-blue-200 focus:ring-0" 
-                    />
-                    <button 
-                        type="submit"
-                        className="btn bg-white hover:bg-blue-50 text-blue-700 border-none rounded-2xl px-8 font-bold flex items-center gap-2 transition-all active:scale-95 shadow-lg"
-                    >
-                        Subscribe <FaPaperPlane className="text-xs" />
-                    </button>
-                </form>
-                
-                <p className="mt-6 text-sm opacity-60">
-                    We value your privacy. Unsubscribe at any time.
-                </p>
+  return (
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600/20 via-indigo-600/10 to-slate-900 border border-blue-500/20 p-10 md:p-16">
+      {/* Background decorations */}
+      <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
+
+      <div className="relative z-10 max-w-2xl mx-auto flex flex-col items-center text-center">
+        {/* Icon */}
+        <div className="w-14 h-14 bg-blue-500/15 border border-blue-500/25 rounded-2xl flex items-center justify-center mb-6">
+          <FaEnvelopeOpenText className="text-blue-400 text-2xl" />
+        </div>
+
+        <h2 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
+          Stay in the <span className="text-blue-400">Loop</span>
+        </h2>
+
+        <p className="text-slate-400 mb-10 max-w-md leading-relaxed">
+          Join <span className="text-white font-bold">5,000+ citizens</span>{" "}
+          getting real-time updates on community resolutions, new features, and
+          city improvements.
+        </p>
+
+        {subscribed ? (
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center">
+              <FaCheckCircle className="text-emerald-400 text-3xl" />
             </div>
-        </section>
-    );
+            <p className="text-xl font-bold text-white">You're subscribed!</p>
+            <p className="text-slate-400 text-sm">
+              Thank you for joining the CityCare community. Check your inbox
+              shortly.
+            </p>
+          </div>
+        ) : (
+          <form
+            onSubmit={handleSubscribe}
+            noValidate
+            className="w-full max-w-lg space-y-3"
+          >
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error) setError("");
+                  }}
+                  placeholder="Enter your email address"
+                  className={`w-full h-12 bg-slate-900/80 backdrop-blur-sm border rounded-xl px-5 text-white placeholder-slate-600 focus:outline-none transition-all duration-200 text-sm ${
+                    error
+                      ? "border-red-500/60 focus:ring-2 focus:ring-red-500/20"
+                      : "border-slate-700/60 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 hover:border-slate-600"
+                  }`}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="h-12 px-7 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap text-sm"
+              >
+                {loading ? (
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <FaPaperPlane className="text-xs" />
+                    Subscribe
+                  </>
+                )}
+              </button>
+            </div>
+            {error && (
+              <p className="text-red-400 text-xs font-medium text-left">
+                {error}
+              </p>
+            )}
+          </form>
+        )}
+
+        <div className="flex items-center gap-2 mt-6 text-slate-600 text-xs font-medium">
+          <FaLock className="text-[10px]" />
+          No spam. Unsubscribe anytime. We respect your privacy.
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Newsletter;

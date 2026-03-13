@@ -1,151 +1,223 @@
-import React from 'react';
+import React, { useState } from 'react';
 import useAuth from '../../../hooks/useAuth';
 import useRole from '../../../hooks/useRole';
 import { useForm } from 'react-hook-form';
-import Swal from 'sweetalert2';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import { useQueryClient } from '@tanstack/react-query';
-import { FaCrown, FaCheckCircle, FaExclamationTriangle, FaUser } from 'react-icons/fa';
+import {
+    FaCrown, FaCheckCircle, FaExclamationTriangle,
+    FaUser, FaEnvelope, FaShieldAlt, FaBolt
+} from 'react-icons/fa';
+
+const Toast = ({ message, type, onClose }) => (
+    <div className={`fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-5 py-4 rounded-2xl border shadow-2xl text-sm font-bold transition-all ${type === 'error'
+        ? 'bg-red-900/95 border-red-700/60 text-red-200'
+        : 'bg-emerald-900/95 border-emerald-700/60 text-emerald-200'
+        }`}>
+        {type === 'error' ? <FaExclamationTriangle /> : <FaCheckCircle />}
+        {message}
+    </div>
+);
 
 const Profile = () => {
     const { user, updateUserProfile } = useAuth();
     const { role, isPremium, isBlocked, isRoleLoading } = useRole();
-    const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+        defaultValues: { displayName: user?.displayName || '', email: user?.email || '' }
+    });
     const axiosSecure = useAxiosSecure();
     const queryClient = useQueryClient();
+    const [toast, setToast] = useState(null);
+    const [subscribeLoading, setSubscribeLoading] = useState(false);
+    const [showSubConfirm, setShowSubConfirm] = useState(false);
 
-    React.useEffect(() => {
-        if (user) {
-            setValue('displayName', user.displayName || '');
-            setValue('email', user.email || ''); 
+    const showToast = (message, type = 'success') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 2800);
+    };
+
+    const handleProfileUpdate = async (data) => {
+        try {
+            await updateUserProfile({ displayName: data.displayName });
+            queryClient.invalidateQueries({ queryKey: [user?.email, 'userRole'] });
+            showToast('Profile updated successfully!');
+        } catch (error) {
+            showToast(error.message || 'Update failed.', 'error');
         }
-    }, [user, setValue]);
-
-    const handleProfileUpdate = (data) => {
-        updateUserProfile({ displayName: data.displayName })
-            .then(() => {
-                Swal.fire('Success', 'Profile updated successfully!', 'success');
-                queryClient.invalidateQueries({ queryKey: [user?.email, 'userRole'] });
-            })
-            .catch(error => {
-                Swal.fire('Error', error.message, 'error');
-            });
     };
 
     const handleSubscription = async () => {
-        const subscriptionCost = 1000; 
-        Swal.fire({
-            title: "Confirm Subscription?",
-            text: `Charge: ${subscriptionCost} Taka for Premium access.`,
-            icon: "info",
-            showCancelButton: true,
-            confirmButtonText: "Pay Now",
-            confirmButtonColor: '#4F46E5'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    const res = await axiosSecure.post('/subscription-checkout-session', { cost: subscriptionCost });
-                    window.location.href = res.data.url;
-                } catch (error) {
-                    Swal.fire('Error', 'Payment failed!', 'error');
-                }
-            }
-        });
+        setShowSubConfirm(false);
+        setSubscribeLoading(true);
+        try {
+            const res = await axiosSecure.post('/subscription-checkout-session', { cost: 1000 });
+            window.location.href = res.data.url;
+        } catch {
+            showToast('Payment initiation failed. Try again.', 'error');
+            setSubscribeLoading(false);
+        }
     };
 
     if (isRoleLoading) return (
         <div className="flex justify-center items-center min-h-[400px]">
-            <span className="loading loading-infinity loading-lg text-primary"></span>
+            <div className="w-10 h-10 border-4 border-slate-800 border-t-blue-500 rounded-full animate-spin" />
         </div>
     );
 
     return (
-        <div className="max-w-3xl mx-auto px-4 py-10">
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-                <div className="h-32 bg-gradient-to-r from-blue-600 to-indigo-700"></div>
-                
-                <div className="px-8 pb-10">
-                    <div className="relative -mt-16 flex flex-col items-center">
-                        <div className="avatar">
-                            <div className="w-32 h-32 rounded-full ring-8 ring-white shadow-xl bg-gray-100">
-                                <img src={user?.photoURL || 'https://i.ibb.co/0Qp9Y9G/user.png'} alt="Profile" />
-                            </div>
+        <div className="max-w-2xl mx-auto">
+            {toast && <Toast message={toast.message} type={toast.type} />}
+
+            {/* Subscribe confirm dialog */}
+            {showSubConfirm && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4">
+                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowSubConfirm(false)} />
+                    <div className="relative bg-slate-900 border border-slate-700/60 rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center">
+                        <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                            <FaCrown className="text-amber-400 text-2xl" />
                         </div>
-                        <div className="mt-4 text-center">
-                            <h2 className="text-3xl font-black text-gray-900 flex items-center justify-center gap-2">
+                        <h3 className="text-xl font-black text-white mb-2">Confirm Premium?</h3>
+                        <p className="text-slate-400 text-sm mb-7">You'll be charged <span className="text-white font-bold">1,000 Taka</span> for full Premium access.</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setShowSubConfirm(false)} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold rounded-xl text-sm transition-all">Cancel</button>
+                            <button onClick={handleSubscription} className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold rounded-xl text-sm transition-all">Pay Now</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="bg-slate-900 border border-slate-800/60 rounded-3xl overflow-hidden">
+
+                {/* Cover + Avatar */}
+                <div className="h-32 bg-gradient-to-br from-blue-600/30 via-indigo-600/20 to-slate-900 relative">
+                    <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: `linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px)`, backgroundSize: '30px 30px' }} />
+                </div>
+
+                <div className="px-8 pb-10">
+                    <div className="flex flex-col sm:flex-row sm:items-end gap-5 -mt-14 mb-8">
+                        <div className="relative w-28 h-28 rounded-2xl overflow-hidden ring-4 ring-slate-900 border-2 border-slate-800 shrink-0 bg-slate-800">
+                            <img
+                                src={user?.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.displayName || 'U') + '&background=1e3a5f&color=60a5fa&size=128'}
+                                alt="Profile"
+                                className="w-full h-full object-cover"
+                            />
+                            {isPremium && (
+                                <div className="absolute bottom-1.5 right-1.5 w-6 h-6 bg-amber-400 rounded-lg flex items-center justify-center">
+                                    <FaCrown className="text-amber-900 text-[10px]" />
+                                </div>
+                            )}
+                        </div>
+                        <div className="pb-1">
+                            <h2 className="text-2xl font-black text-white flex items-center gap-2 flex-wrap">
                                 {user?.displayName || 'User Name'}
-                                {isPremium && <FaCrown className="text-yellow-500 animate-bounce" title="Premium" />}
+                                {isPremium && <span className="text-xs font-bold bg-amber-400/15 text-amber-300 border border-amber-400/25 px-2.5 py-1 rounded-full">Premium</span>}
                             </h2>
-                            <div className="mt-2 inline-flex items-center px-4 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 font-black text-xs uppercase tracking-widest">
-                                {role || 'Citizen'}
+                            <div className="flex items-center gap-2 mt-1.5">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-full">
+                                    {role || 'Citizen'}
+                                </span>
                             </div>
                         </div>
                     </div>
 
+                    {/* Blocked Warning */}
                     {isBlocked && (
-                        <div className='mt-8 p-4 bg-red-50 border-2 border-red-200 text-red-700 rounded-2xl flex items-center justify-center animate-pulse'>
-                            <FaExclamationTriangle className="mr-3 text-xl" />
-                            <span className="font-black">ACCOUNT BLOCKED! CONTACT AUTHORITIES</span>
+                        <div className="mb-8 flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/25 rounded-2xl">
+                            <FaExclamationTriangle className="text-red-400 text-lg shrink-0" />
+                            <div>
+                                <p className="text-red-300 font-black text-sm">Account Restricted</p>
+                                <p className="text-red-400/70 text-xs font-medium">Contact authorities to restore access.</p>
+                            </div>
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit(handleProfileUpdate)} className="mt-10 space-y-8">
-                        <div className="form-control w-full">
-                            <label className="label">
-                                <span className="label-text font-black text-gray-700 uppercase tracking-wide text-xs">Full Name</span>
+                    {/* Profile Form */}
+                    <form onSubmit={handleSubmit(handleProfileUpdate)} className="space-y-5 mb-10">
+                        <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                                Full Name <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
-                                    <FaUser />
-                                </span>
-                                <input 
-                                    type="text" 
-                                    {...register('displayName', { required: true })} 
-                                    className="input input-bordered w-full h-14 pl-12 bg-gray-50 text-gray-900 font-bold focus:ring-4 focus:ring-blue-100 border-gray-200" 
+                                <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-sm" />
+                                <input
+                                    type="text"
+                                    {...register('displayName', { required: 'Full name is required.' })}
+                                    placeholder="Your full name"
+                                    className={`w-full h-12 bg-slate-800/60 border rounded-xl pl-11 pr-5 text-white placeholder-slate-600 text-sm font-medium focus:outline-none transition-all ${errors.displayName
+                                        ? 'border-red-500/60 focus:ring-2 focus:ring-red-500/20'
+                                        : 'border-slate-700/60 hover:border-slate-600 focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20'
+                                        }`}
                                 />
                             </div>
-                            {errors.displayName && <span className="text-red-500 text-xs mt-2 font-bold italic">Full name is required</span>}
+                            {errors.displayName && <p className="text-red-400 text-xs font-medium mt-1.5">{errors.displayName.message}</p>}
                         </div>
 
-                        <div className="form-control w-full opacity-70">
-                            <label className="label">
-                                <span className="label-text font-black text-gray-700 uppercase tracking-wide text-xs">Email (Read-Only)</span>
+                        <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                                Email Address <span className="text-slate-700">(Read-Only)</span>
                             </label>
-                            <input 
-                                type="email" 
-                                {...register('email')} 
-                                className="input input-bordered w-full h-14 bg-gray-200 text-gray-600 font-bold cursor-not-allowed" 
-                                readOnly 
-                            />
+                            <div className="relative">
+                                <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700 text-sm" />
+                                <input
+                                    type="email"
+                                    value={user?.email || ''}
+                                    readOnly
+                                    className="w-full h-12 bg-slate-800/30 border border-slate-800 rounded-xl pl-11 pr-5 text-slate-600 text-sm font-medium cursor-not-allowed"
+                                />
+                            </div>
                         </div>
 
-                        <button type="submit" className="btn btn-primary w-full h-14 text-white font-black text-lg border-none bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100" disabled={isBlocked}>
-                            SAVE PROFILE CHANGES
+                        <button
+                            type="submit"
+                            disabled={isSubmitting || isBlocked}
+                            className="w-full h-12 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-200 shadow-lg shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 text-sm flex items-center justify-center gap-2"
+                        >
+                            {isSubmitting
+                                ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving...</>
+                                : 'Save Profile Changes'
+                            }
                         </button>
                     </form>
-                    
-                    <div className="divider my-12 text-gray-400 font-black text-xs uppercase tracking-widest">Membership Status</div>
 
-                    {/* Premium Card - Fixed Contrast */}
+                    {/* Divider */}
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="flex-1 h-px bg-slate-800" />
+                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-1.5">
+                            <FaShieldAlt className="text-[9px]" /> Membership Status
+                        </span>
+                        <div className="flex-1 h-px bg-slate-800" />
+                    </div>
+
+                    {/* Premium Status */}
                     {isPremium ? (
-                        <div className="p-6 bg-green-50 rounded-2xl border-2 border-green-200 flex items-center gap-4">
-                            <div className="p-3 bg-green-500 rounded-full text-white">
-                                <FaCheckCircle size={24} />
+                        <div className="flex items-center gap-4 p-5 bg-emerald-500/8 border border-emerald-500/20 rounded-2xl">
+                            <div className="w-12 h-12 bg-emerald-500/15 rounded-xl flex items-center justify-center shrink-0">
+                                <FaCheckCircle className="text-emerald-400 text-xl" />
                             </div>
                             <div>
-                                <h4 className="font-black text-green-900 text-lg">Active Premium Access</h4>
-                                <p className="text-green-700 font-bold text-sm">You have unlimited reporting and priority support.</p>
+                                <h4 className="font-black text-white text-base">Premium Active</h4>
+                                <p className="text-emerald-400/80 text-sm font-medium">Unlimited reporting and priority support enabled.</p>
                             </div>
                         </div>
                     ) : (
-                        <div className="p-8 bg-amber-50 rounded-2xl border-2 border-amber-100 text-center">
-                            <p className="mb-6 text-amber-900 font-black text-lg tracking-tight">Upgrade to Premium for unlimited reporting and exclusive features.</p>
-                            <button 
-                                onClick={handleSubscription} 
-                                className="btn btn-warning w-full h-14 text-black font-black text-lg border-none shadow-lg shadow-amber-200 hover:scale-[1.02] transition-transform" 
-                                disabled={isBlocked}
+                        <div className="p-6 bg-amber-500/5 border border-amber-500/15 rounded-2xl text-center">
+                            <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                <FaCrown className="text-amber-400 text-xl" />
+                            </div>
+                            <h4 className="text-white font-black text-lg mb-2">Upgrade to Premium</h4>
+                            <p className="text-slate-400 text-sm mb-6 leading-relaxed max-w-sm mx-auto">
+                                Get unlimited reporting, priority boost, and exclusive analytics for just 1,000 Taka.
+                            </p>
+                            <button
+                                onClick={() => setShowSubConfirm(true)}
+                                disabled={isBlocked || subscribeLoading}
+                                className="flex items-center justify-center gap-2 mx-auto px-8 py-3 bg-amber-500 hover:bg-amber-400 disabled:bg-slate-700 disabled:cursor-not-allowed text-slate-900 font-black rounded-xl transition-all shadow-lg shadow-amber-500/15 hover:-translate-y-0.5 text-sm"
                             >
-                                GET PREMIUM NOW (1000 TK)
+                                {subscribeLoading
+                                    ? <span className="w-4 h-4 border-2 border-slate-600 border-t-slate-900 rounded-full animate-spin" />
+                                    : <FaBolt />
+                                }
+                                Get Premium — 1,000 Taka
                             </button>
                         </div>
                     )}

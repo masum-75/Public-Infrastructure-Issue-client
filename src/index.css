@@ -1,2 +1,115 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities; */
+
+/* ─────────────────────────────────────────────
+   CSS Custom Properties — Dark / Light Tokens
+   Applied by ThemeContext on <html class="dark|light">
+───────────────────────────────────────────── */
+
+:root,
+html.dark {
+  --color-bg:               #020617;   /* slate-950 */
+  --color-surface:          #0f172a;   /* slate-900 */
+  --color-surface-secondary:#1e293b;   /* slate-800 */
+  --color-border:           rgba(51,65,85,0.6);  /* slate-700/60 */
+  --color-text-primary:     #f1f5f9;   /* slate-100 */
+  --color-text-secondary:   #94a3b8;   /* slate-400 */
+  --color-text-muted:       #475569;   /* slate-600 */
+  --color-accent:           #2563eb;   /* blue-600 */
+  --color-accent-hover:     #3b82f6;   /* blue-500 */
+}
+
+html.light {
+  --color-bg:               #f8fafc;   /* slate-50 */
+  --color-surface:          #ffffff;
+  --color-surface-secondary:#f1f5f9;   /* slate-100 */
+  --color-border:           rgba(203,213,225,0.8);  /* slate-300 */
+  --color-text-primary:     #0f172a;   /* slate-900 */
+  --color-text-secondary:   #475569;   /* slate-600 */
+  --color-text-muted:       #94a3b8;   /* slate-400 */
+  --color-accent:           #2563eb;
+  --color-accent-hover:     #1d4ed8;
+}
+
+/* Apply bg to body automatically */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ─────────────────────────────────────────────
+   Swiper — HomeBannerSlider overrides
+   (Replaces HomeBannerSlider.css — no separate file needed)
+───────────────────────────────────────────── */
+
+.banner-swiper .swiper-button-next,
+.banner-swiper .swiper-button-prev {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.1);
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 50%;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: background 0.2s ease;
+}
+
+.banner-swiper .swiper-button-next:hover,
+.banner-swiper .swiper-button-prev:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.banner-swiper .swiper-button-next::after,
+.banner-swiper .swiper-button-prev::after {
+  font-size: 17px !important;
+  font-weight: 900;
+}
+
+.banner-swiper .swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.35);
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+.banner-swiper .swiper-pagination-bullet-active {
+  background: #3b82f6 !important;
+  width: 28px !important;
+  border-radius: 4px !important;
+}
+
+/* ─────────────────────────────────────────────
+   Scrollbar (dark surfaces)
+───────────────────────────────────────────── */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.5);
+  border-radius: 999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}
+
+/* ─────────────────────────────────────────────
+   Light mode overrides for dashboard/layout
+   Components use `dark:` Tailwind variants AND
+   these CSS var utilities for graceful fallback.
+───────────────────────────────────────────── */
+
+html.light .bg-slate-950 { background-color: var(--color-bg) !important; }
+html.light .bg-slate-900 { background-color: var(--color-surface) !important; }
+html.light .bg-slate-800 { background-color: var(--color-surface-secondary) !important; }
+html.light .border-slate-800 { border-color: var(--color-border) !important; }
+html.light .text-white    { color: var(--color-text-primary) !important; }
+html.light .text-slate-400 { color: var(--color-text-secondary) !important; }
+html.light .text-slate-500 { color: var(--color-text-muted) !important; }
