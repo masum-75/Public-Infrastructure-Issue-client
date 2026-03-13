@@ -10,9 +10,10 @@ import CategorySection from './CategorySection';
 import TestimonialsSection from './TestimonialsSection';
 import FaqSection from './FaqSection';
 import CtaSection from './CtaSection';
+import '../../index.css';
 
 const SectionWrapper = ({ children, className = '' }) => (
-    <section className={`py-20 md:py-28 ${className}`}>
+    <section className={`py-8 md:py-12 ${className}`}>
         <div className="max-w-7xl mx-auto px-6">
             {children}
         </div>
@@ -21,48 +22,48 @@ const SectionWrapper = ({ children, className = '' }) => (
 
 const Home = () => {
     return (
-        <div className="bg-slate-950 min-h-screen">
+        <div className="">
 
             {/* 1. Hero / Banner Slider */}
             <HomeBannerSlider />
 
             {/* 2. Live Stats Bar */}
-            <div className="bg-slate-900/60 border-y border-slate-800/60">
+            <div >
                 <StatsSection />
             </div>
 
             {/* 3. Features Section */}
-            <SectionWrapper className="bg-slate-950">
+            <SectionWrapper >
                 <FeaturesSection />
             </SectionWrapper>
 
             {/* 4. Issue Categories */}
-            <SectionWrapper className="bg-slate-900/40 border-y border-slate-800/40">
+            <SectionWrapper >
                 <CategorySection />
             </SectionWrapper>
 
             {/* 5. How It Works */}
-            <SectionWrapper className="bg-slate-950">
+            <SectionWrapper >
                 <HowItWorksSection />
             </SectionWrapper>
 
             {/* 6. Latest Resolved Issues */}
-            <SectionWrapper className="bg-slate-900/40 border-y border-slate-800/40">
+            <SectionWrapper >
                 <LatestResolvedIssues />
             </SectionWrapper>
 
             {/* 7. Why Choose Us */}
-            <SectionWrapper className="bg-slate-950">
+            <SectionWrapper >
                 <WhyChooseUs />
             </SectionWrapper>
 
             {/* 8. Testimonials */}
-            <SectionWrapper className="bg-slate-900/40 border-y border-slate-800/40">
+            <SectionWrapper >
                 <TestimonialsSection />
             </SectionWrapper>
 
             {/* 9. FAQ */}
-            <SectionWrapper className="bg-slate-950">
+            <SectionWrapper >
                 <FaqSection />
             </SectionWrapper>
 
@@ -70,7 +71,7 @@ const Home = () => {
             <CtaSection />
 
             {/* 11. Newsletter */}
-            <SectionWrapper className="bg-slate-950 pb-32">
+            <SectionWrapper >
                 <Newsletter />
             </SectionWrapper>
 

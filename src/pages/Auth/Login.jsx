@@ -17,7 +17,11 @@ const DEMO_CREDENTIALS = [
     email: "citizen@citycare.com",
     password: "citizen123",
   },
-  { label: "Demo Admin", email: "admin@citycare.com", password: "admin123" },
+  {
+    label: "Demo Admin",
+    email: "tanbirmasum014@gmail.com",
+    password: "admin123",
+  },
 ];
 
 const Login = () => {

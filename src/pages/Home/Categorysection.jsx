@@ -98,7 +98,7 @@ const CATEGORIES = [
 ];
 
 const CategorySection = () => (
-    <section className="py-24 bg-slate-900 relative overflow-hidden">
+    <section className="py-24  rounded-xl relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.025]"
             style={{ backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)`, backgroundSize: '32px 32px' }} />
 
@@ -118,7 +118,7 @@ const CategorySection = () => (
                 </div>
                 <Link
                     to="/all-issues"
-                    className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700/60 hover:border-slate-600 text-slate-300 hover:text-white font-bold rounded-2xl transition-all duration-200 text-sm self-start md:self-auto shrink-0"
+                    className="flex items-center gap-2 px-6 py-3  border  font-bold rounded-2xl transition-all duration-200 text-sm self-start md:self-auto shrink-0"
                 >
                     Browse All Issues <FaArrowRight className="text-xs" />
                 </Link>
@@ -129,7 +129,7 @@ const CategorySection = () => (
                     <Link
                         key={label}
                         to={`/all-issues?category=${encodeURIComponent(label)}`}
-                        className={`group relative p-6 bg-slate-950/60 border ${border} ${hover} rounded-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col gap-4`}
+                        className={`group relative p-6 border ${border} ${hover} rounded-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col gap-4`}
                     >
                         <div className="flex items-start justify-between">
                             <div className={`w-11 h-11 ${bg} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>

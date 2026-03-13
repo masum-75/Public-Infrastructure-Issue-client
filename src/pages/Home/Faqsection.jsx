@@ -42,7 +42,7 @@ const FaqItem = ({ item, isOpen, onToggle }) => (
     className={`border rounded-2xl overflow-hidden transition-all duration-200 ${
       isOpen
         ? "bg-slate-900 border-blue-500/30"
-        : "bg-slate-900/40 border-slate-800/60 hover:border-slate-700/60"
+        : " border-slate-800/60"
     }`}
   >
     <button
@@ -50,15 +50,13 @@ const FaqItem = ({ item, isOpen, onToggle }) => (
       className="w-full flex items-center justify-between gap-4 px-7 py-5 text-left"
     >
       <span
-        className={`text-sm font-bold leading-snug transition-colors ${isOpen ? "text-white" : "text-slate-300"}`}
+        className={`text-sm font-bold leading-snug transition-colors ${isOpen ? "text-white" : "text-white"}`}
       >
         {item.q}
       </span>
       <div
         className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300 ${
-          isOpen
-            ? "bg-blue-500/20 text-blue-400 rotate-180"
-            : "bg-slate-800 text-slate-500"
+          isOpen ? "bg-blue-500/20 text-blue-400 rotate-180" : " text-white"
         }`}
       >
         <FaChevronDown className="text-xs" />
@@ -68,7 +66,7 @@ const FaqItem = ({ item, isOpen, onToggle }) => (
     <div
       className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"}`}
     >
-      <p className="px-7 pb-6 text-slate-400 text-sm leading-relaxed border-t border-slate-800/60 pt-4">
+      <p className="px-7 pb-6 text-white text-lg leading-relaxed border-t border-slate-800/60 pt-4">
         {item.a}
       </p>
     </div>
@@ -83,7 +81,7 @@ const FaqSection = () => {
   const right = FAQS.slice(half);
 
   return (
-    <section className="py-24 bg-slate-900 relative overflow-hidden">
+    <section className="py-24  relative overflow-hidden">
       <div className="absolute top-1/3 left-0 w-64 h-64 bg-blue-600/5 rounded-full blur-[100px]" />
       <div className="absolute bottom-1/3 right-0 w-64 h-64 bg-violet-600/5 rounded-full blur-[100px]" />
 
@@ -133,10 +131,10 @@ const FaqSection = () => {
 
         {/* Bottom CTA */}
         <div className="text-center mt-14">
-          <p className="text-slate-500 text-sm mb-4">Still have questions?</p>
+          <p className="text-white text-lg mb-4">Still have questions?</p>
           <Link
             to="/contact-us"
-            className="inline-flex items-center gap-2 px-7 py-3.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white font-bold rounded-2xl transition-all duration-200 text-sm"
+            className="inline-flex items-center gap-2 px-7 py-3.5   hover:bg-slate-700 border border-slate-700 hover:border-slate-600 bg-sky-400 text-black hover:text-white font-bold rounded-2xl transition-all duration-200 text-lg"
           >
             Contact Support
           </Link>
