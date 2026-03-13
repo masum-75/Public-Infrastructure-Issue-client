@@ -1,10 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router';
 import {
-    FaRoad, FaLightbulb, FaTint, FaTrash,
-    FaSidewalk, FaTree, FaBolt, FaArrowRight
-} from 'react-icons/fa';
-import { MdConstruction } from 'react-icons/md';
+  FaRoad,
+  FaLightbulb,
+  FaTint,
+  FaTrash,
+  FaTree,
+  FaBolt,
+  FaArrowRight,
+} from "react-icons/fa";
+
+import { FaPersonWalking } from "react-icons/fa6";
+import { MdConstruction } from "react-icons/md";
 
 const CATEGORIES = [
     {
