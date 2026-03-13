@@ -2,12 +2,137 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>public-infrastructure-issue</title>
+
+    <title>CityCare — Public Infrastructure Issue Reporter</title>
+    <meta name="description" content="CityCare lets citizens report potholes, broken streetlights, water leakages, and other public infrastructure issues. Join 3,200+ citizens improving their city — one report at a time." />
+    <meta name="keywords" content="CityCare, public infrastructure, issue reporter, pothole, streetlight, city problems, citizen reporting, Bangladesh" />
+    <meta name="author" content="CityCare · citycare.gov" />
+    <meta name="theme-color" content="#020617" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://public-issue.web.app/" />
+    <meta property="og:title" content="CityCare — Report Public Infrastructure Issues" />
+    <meta property="og:description" content="Report potholes, broken streetlights, water leakages, and more. CityCare connects citizens with local authorities for faster resolutions." />
+    <meta property="og:image" content="https://public-issue.web.app/og-image.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://public-issue.web.app/" />
+    <meta name="twitter:title" content="CityCare — Report Public Infrastructure Issues" />
+    <meta name="twitter:description" content="Join 3,200+ citizens improving their city. Report infrastructure issues and track resolutions in real-time." />
+    <meta name="twitter:image" content="https://public-issue.web.app/og-image.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      html { background-color: #020617; }
+
+      #root:empty::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #020617;
+      }
+
+      #splash {
+        position: fixed;
+        inset: 0;
+        background: #020617;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        z-index: 9999;
+        transition: opacity 0.4s ease, visibility 0.4s ease;
+      }
+
+      #splash.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .splash-logo {
+        width: 52px;
+        height: 52px;
+        background: #2563eb;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 40px rgba(37,99,235,0.35);
+        animation: splashPulse 1.8s ease-in-out infinite;
+      }
+
+      .splash-logo svg { width: 28px; height: 28px; fill: white; }
+
+      .splash-wordmark {
+        font-family: 'Syne', sans-serif;
+        font-weight: 900;
+        font-size: 1.5rem;
+        color: #fff;
+        letter-spacing: -0.02em;
+      }
+
+      .splash-wordmark span { color: #60a5fa; }
+
+      .splash-spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid #1e293b;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes splashPulse {
+        0%, 100% { box-shadow: 0 0 40px rgba(37,99,235,0.35); }
+        50%       { box-shadow: 0 0 60px rgba(37,99,235,0.6); }
+      }
+    </style>
   </head>
   <body>
+
+    <div id="splash">
+      <div class="splash-logo">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+      </div>
+      <div class="splash-wordmark">CITY<span>CARE</span></div>
+      <div class="splash-spinner"></div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <script>
+      (function () {
+        const splash = document.getElementById('splash');
+        const observer = new MutationObserver(() => {
+          const root = document.getElementById('root');
+          if (root && root.children.length > 0) {
+            splash.classList.add('hidden');
+            observer.disconnect();
+          }
+        });
+        observer.observe(document.getElementById('root'), { childList: true, subtree: true });
+        setTimeout(() => splash.classList.add('hidden'), 3000);
+      })();
+    </script>
+
   </body>
 </html>
